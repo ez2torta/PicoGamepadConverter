@@ -55,7 +55,7 @@ static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
     //SET MODE
     if(mg_http_match_uri(hm, "/set_mode")){
-      double host, device, bhid;
+      double host, device, bhid, dp_pin = -1, dm_pin = -1;
       //copy the saved old data
       uint8_t buffer[256];
       for (int i = 0; i < 27; ++i)
@@ -65,6 +65,13 @@ static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
       if(mg_json_get_num(hm->body, "$.host", &host) && mg_json_get_num(hm->body, "$.device", &device)){
           buffer[0] = (uint8_t)host;
           buffer[1] = (uint8_t)device;
+          // Pines USB configurables
+          if(mg_json_get_num(hm->body, "$.dp_pin", &dp_pin)) {
+            buffer[25] = (uint8_t)dp_pin;
+          }
+          if(mg_json_get_num(hm->body, "$.dm_pin", &dm_pin)) {
+            buffer[26] = (uint8_t)dm_pin;
+          }
           //BLUETOOTH MODE
           if(hm->body.len > 21){
             double mac;
@@ -137,17 +144,20 @@ static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
       }
       // Array to string
       uint8_t size = 27;
-      uint8_t path[size*3];
+      uint8_t path[size*3 + 32];
       uint8_t offset = 0;
       path[0] = '[';
       for(int i = 0; i < size; i++){
         sprintf(&path[1 + offset],"%d,", buffer[i]);
-        // strlen don't work
         for (int j = 0; path[j] != '\0'; j++) {
             offset = j;
         }
       }
       path[offset] = ']';
+      // Agregar los pines USB como JSON
+      char pins_json[32];
+      sprintf(pins_json, ",\"dp_pin\":%d,\"dm_pin\":%d", buffer[25], buffer[26]);
+      strcat(path, pins_json);
       mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", path);
     }
     else {                                                // For all other URIs,

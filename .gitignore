@@ -1,0 +1,30 @@
+# Ignore build output and submodules
+build/
+pico-sdk/
+tinyusb/
+Pico-PIO-USB/
+picotool/
+# VSCode
+.vscode/
+# Python
+__pycache__/
+*.pyc
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+# Others
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.log
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.DS_Store
